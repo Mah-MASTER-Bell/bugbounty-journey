@@ -1,0 +1,11 @@
+Parameter,Status Code,Response Length
+id,200,341
+user,200,345
+name,200,345
+pass,200,345
+email,200,347
+phone,200,347
+address,200,351
+city,200,345
+country,200,351
+zip,200,343
