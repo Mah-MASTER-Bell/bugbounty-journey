@@ -1,0 +1,9 @@
+Subdomain,Protocol,Status Code,Response Length
+www.tesla.com,https://,403,365
+www.tesla.com,http://,403,365
+dev.tesla.com,https://,ERROR,0
+dev.tesla.com,http://,ERROR,0
+api.tesla.com,https://,ERROR,0
+api.tesla.com,http://,ERROR,0
+ir.tesla.com,https://,403,364
+ir.tesla.com,http://,403,364

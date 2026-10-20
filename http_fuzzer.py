@@ -1,34 +1,49 @@
-
 import requests
+import sys
 import csv
 
-# 1. Create a list of 10 parameters
-parameters = ['id', 'user', 'name', 'pass', 'email', 'phone', 'address', 'city', 'country', 'zip']
+# Default timeout is 3 seconds
+timeout_val = 3
 
-# 2. Setup CSV file to save the results
-with open('fuzz_results.csv', mode='w', newline='') as file:
+# Check if user passed --timeout argument
+if '--timeout' in sys.argv:
+    try:
+        timeout_val = int(sys.argv[sys.argv.index('--timeout') + 1])
+    except (IndexError, ValueError):
+        print("Error: --timeout requires a number. Using default 3s.")
+
+# List of subdomains to test
+subdomains = [
+    'www.tesla.com',
+    'dev.tesla.com',
+    'api.tesla.com',
+    'ir.tesla.com'
+]
+
+print(f"Starting fuzzer with timeout: {timeout_val} seconds...\n")
+
+with open('subdomain_results.csv', mode='w', newline='') as file:
     writer = csv.writer(file)
-    writer.writerow(['Parameter', 'Status Code', 'Response Length'])
+    writer.writerow(['Subdomain', 'Protocol', 'Status Code', 'Response Length'])
 
-    # 3. Loop through the parameters
-    for parameter_name in parameters:
-        url = f"https://httpbin.org/get?{parameter_name}=test"
+    for sub in subdomains:
+        for protocol in ['https://', 'http://']:
+            url = f"{protocol}{sub}"
 
-        # 4. Use try/except for error handling
-        try:
-            response = requests.get(url)
-            status = response.status_code
-            length = len(response.text)
+            try:
+                # Added timeout argument here
+                response = requests.get(url, timeout=timeout_val)
+                status = response.status_code
+                length = len(response.text)
 
-            # Print to terminal
-            print(f"Parameter: {parameter_name} | Status: {status} | Length: {length}")
+                print(f"[+] {url} -> Status: {status} | Length: {length}")
+                writer.writerow([sub, protocol, status, length])
 
-            # Save to CSV
-            writer.writerow([parameter_name, status, length])
+            except requests.exceptions.Timeout:
+                print(f"[-] {url} -> TIMEOUT after {timeout_val}s")
+                writer.writerow([sub, protocol, "TIMEOUT", "0"])
+            except requests.exceptions.RequestException as e:
+                print(f"[-] {url} -> ERROR: {e}")
+                writer.writerow([sub, protocol, "ERROR", "0"])
 
-        except requests.exceptions.RequestException as e:
-            print(f"Error with parameter {parameter_name}: {e}")
-            writer.writerow([parameter_name, "ERROR", "ERROR"])
-
-print("\nDone! Results saved to fuzz_results.csv")
-
+print("\nDone! Results saved to subdomain_results.csv")
